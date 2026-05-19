@@ -1,1 +1,172 @@
 @import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ANNUR AGENCY · MATERIAL YOU (MD3) DESIGN TOKENS
+   Brand: Black + Gold derived as a tonal palette around an amber/gold seed.
+   ───────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* ── Typography ────────────────────────────────────────────────────── */
+  --font-sans: "Roboto", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+
+  /* MD3 type scale */
+  --text-display-lg: 3.5rem;     /* 56px - hero */
+  --text-display-md: 2.75rem;    /* 44px */
+  --text-headline-lg: 3rem;      /* 48px - section title */
+  --text-headline-md: 2rem;      /* 32px - subsection */
+  --text-headline-sm: 1.75rem;   /* 28px */
+  --text-title-lg: 1.5rem;       /* 24px - card title */
+  --text-title-md: 1.25rem;      /* 20px - lead */
+  --text-body-lg: 1.0625rem;     /* 17px */
+  --text-body-md: 1rem;          /* 16px - body */
+  --text-body-sm: 0.875rem;      /* 14px */
+  --text-label-md: 0.875rem;     /* 14px - button */
+  --text-label-sm: 0.75rem;      /* 12px - caption */
+
+  /* ── Brand-Derived MD3 Palette (Gold seed) ───────────────────────────
+     The gold (#E5A93A) acts as MD3 primary. Black is reserved for
+     inverse-surface and on-primary contexts (sidebar, hero, etc).
+     ──────────────────────────────────────────────────────────────────── */
+
+  /* Primary (gold) tonal stops */
+  --color-md-primary: #B8841C;          /* Tonal-40, button bg */
+  --color-md-primary-hover: #9C6F12;    /* Tonal-30 */
+  --color-md-on-primary: #FFFFFF;
+  --color-md-primary-container: #FFE9B5;  /* Tonal-90, soft gold */
+  --color-md-on-primary-container: #2A1A00;
+
+  /* Secondary (warm taupe — supports gold) */
+  --color-md-secondary: #6E5D3F;
+  --color-md-on-secondary: #FFFFFF;
+  --color-md-secondary-container: #F4E5C7;
+  --color-md-on-secondary-container: #251A04;
+
+  /* Tertiary (deep cocoa accent) */
+  --color-md-tertiary: #4A3729;
+  --color-md-on-tertiary: #FFFFFF;
+  --color-md-tertiary-container: #E8D4C4;
+  --color-md-on-tertiary-container: #1F0F03;
+
+  /* Surfaces — warm cream-tinted (NOT pure white) */
+  --color-md-background: #FCF8F2;       /* Surface, default page bg */
+  --color-md-surface: #FCF8F2;
+  --color-md-surface-container-lowest: #FFFFFF;
+  --color-md-surface-container-low: #F6EFE3;
+  --color-md-surface-container: #F0E7D5;     /* Default card bg */
+  --color-md-surface-container-high: #EADFC8;
+  --color-md-surface-container-highest: #E4D8BB;
+  --color-md-on-surface: #1F1A12;            /* Body text (warm near-black) */
+  --color-md-on-surface-variant: #524937;    /* Secondary text */
+
+  /* Inverse (the BLACK part of the brand — used for sidebar, hero, dark panels) */
+  --color-md-inverse-surface: #1A1410;       /* Sidebar/hero bg */
+  --color-md-inverse-on-surface: #F6EFE3;
+  --color-md-inverse-primary: #FFD27A;       /* Gold on dark surfaces */
+
+  /* Outline / borders (used sparingly) */
+  --color-md-outline: #837754;
+  --color-md-outline-variant: #D4C9AB;
+
+  /* Semantic feedback */
+  --color-md-error: #BA1A1A;
+  --color-md-on-error: #FFFFFF;
+  --color-md-error-container: #FFDAD6;
+  --color-md-success: #2E6B3F;
+  --color-md-success-container: #C9E5CD;
+
+  /* ── Radii (MD3 organic rounding) ─────────────────────────────────── */
+  --radius-md-xs: 8px;
+  --radius-md-sm: 12px;
+  --radius-md-md: 16px;
+  --radius-md-lg: 24px;
+  --radius-md-xl: 28px;
+  --radius-md-2xl: 32px;
+  --radius-md-3xl: 48px;
+
+  /* ── MD3 Shadows (subtle, prefers tonal elevation) ────────────────── */
+  --shadow-md-1: 0 1px 2px 0 rgb(0 0 0 / 0.05),
+    0 1px 3px 0 rgb(0 0 0 / 0.06);
+  --shadow-md-2: 0 2px 6px -1px rgb(0 0 0 / 0.08),
+    0 4px 12px -2px rgb(0 0 0 / 0.08);
+  --shadow-md-3: 0 6px 20px -4px rgb(0 0 0 / 0.12),
+    0 12px 28px -6px rgb(0 0 0 / 0.10);
+  --shadow-md-4: 0 12px 40px -8px rgb(0 0 0 / 0.18),
+    0 24px 48px -12px rgb(0 0 0 / 0.12);
+
+  /* ── MD3 Easing ───────────────────────────────────────────────────── */
+  --ease-md-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-md-standard: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   BASE LAYER — global typographic + element defaults
+   ───────────────────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-md-background);
+    color: var(--color-md-on-surface);
+    font-size: var(--text-body-md);
+    line-height: 1.55;
+  }
+
+  /* Selection uses brand gold */
+  ::selection {
+    background-color: var(--color-md-primary-container);
+    color: var(--color-md-on-primary-container);
+  }
+
+  /* Tighter heading line-height per MD3 spec */
+  h1, h2, h3, h4 {
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  /* Universal focus ring — accessibility baseline */
+  *:focus-visible {
+    outline: 2px solid var(--color-md-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Honour reduced-motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   UTILITY HELPERS — for MD3 patterns that don't map to single Tailwind utils
+   ───────────────────────────────────────────────────────────────────────── */
+@utility md-emphasized {
+  transition-timing-function: var(--ease-md-emphasized);
+}
+
+/* MD3 filled text-field shape: rounded top, square bottom + 2px bottom border */
+@utility md-textfield {
+  border-radius: var(--radius-md-sm) var(--radius-md-sm) 0 0;
+  border-bottom: 2px solid var(--color-md-outline);
+  background-color: var(--color-md-surface-container-low);
+  transition: border-color 200ms var(--ease-md-emphasized);
+}
+.md-textfield:focus-within,
+.md-textfield:focus {
+  border-bottom-color: var(--color-md-primary);
+}
+
+/* Atmospheric blur shape — for hero/section backgrounds */
+@utility md-blur-shape {
+  filter: blur(80px);
+  pointer-events: none;
+}

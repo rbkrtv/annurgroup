@@ -8,8 +8,8 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { Button, Card, Textarea } from './ui';
 
-// ─── BM Status Translations ──────────────────────────────────────────────────
 const statusBM = {
   All: 'Semua',
   New: 'Baru',
@@ -19,7 +19,74 @@ const statusBM = {
   KIV: 'KIV',
 };
 
-// ─── AI WhatsApp Analyzer ────────────────────────────────────────────────────
+/* Status chip — colour-coded per pipeline stage */
+function StatusChip({ status }) {
+  const styles = {
+    New: 'bg-md-secondary-container text-md-on-secondary-container',
+    Contacted: 'bg-md-primary-container text-md-on-primary-container',
+    Presentation: 'bg-md-tertiary-container text-md-on-tertiary-container',
+    Closing: 'bg-md-success-container text-md-success',
+    KIV: 'bg-md-surface-container-high text-md-on-surface-variant',
+  }[status];
+
+  return (
+    <span className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${styles}`}>
+      {statusBM[status] || status}
+    </span>
+  );
+}
+
+/* ─── Filter pills ─────────────────────────────────────────────────── */
+function FilterPills({ value, onChange, options }) {
+  return (
+    <div
+      role="tablist"
+      className="flex items-center gap-2 overflow-x-auto pb-2 -mx-1 px-1"
+    >
+      <Filter className="w-4 h-4 text-md-on-surface-variant flex-shrink-0" />
+      {options.map((opt) => {
+        const active = value === opt;
+        return (
+          <button
+            key={opt}
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(opt)}
+            className={[
+              'h-9 px-4 rounded-full text-xs font-medium whitespace-nowrap',
+              'transition-all duration-300 md-emphasized active:scale-95',
+              active
+                ? 'bg-md-inverse-surface text-md-inverse-primary shadow-md-1'
+                : 'bg-md-surface-container text-md-on-surface-variant hover:bg-md-surface-container-high',
+            ].join(' ')}
+          >
+            {statusBM[opt]}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── Status select (used in row + card) ───────────────────────────── */
+function StatusSelect({ value, onChange, statuses }) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={onChange}
+        className="appearance-none bg-md-surface-container-low border-0 border-b-2 border-md-outline rounded-t-lg rounded-b-none pl-3 pr-8 h-9 text-xs font-medium text-md-on-surface focus:border-md-primary focus:outline-none focus:bg-md-surface-container transition-colors"
+      >
+        {statuses.filter((s) => s !== 'All').map((s) => (
+          <option key={s} value={s}>{statusBM[s]}</option>
+        ))}
+      </select>
+      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-md-on-surface-variant pointer-events-none" />
+    </div>
+  );
+}
+
+/* ─── AI Analyzer ──────────────────────────────────────────────────── */
 function AIAnalyzer() {
   const [conversation, setConversation] = useState('');
   const [analysis, setAnalysis] = useState('');
@@ -30,7 +97,6 @@ function AIAnalyzer() {
     setLoading(true);
     setAnalysis('');
 
-    // Simulate AI processing delay
     setTimeout(() => {
       setAnalysis(
         `**Bantahan Dikenalpasti:** Prospek menunjukkan rintangan harga dan keraguan kepercayaan.\n\n` +
@@ -40,212 +106,178 @@ function AIAnalyzer() {
         `3. **Gunakan Bukti Sosial** — "Client saya Puan Aminah pun dulu rasa sama, tapi lepas claim RM45,000 untuk hospital bill anak dia, dia sangat bersyukur."\n\n` +
         `4. **Cipta Urgensi** — "Inflasi perubatan naik 15% setahun. Kalau tunggu lagi setahun, premium akan lebih tinggi dan ada risiko health declaration tak lepas."\n\n` +
         `5. **Penutupan Lembut** — "Apa kata kita tengok plan yang paling basic dulu? Tak ada commitment, saya just nak tunjuk options yang ada."\n\n` +
-        `**Nasihat Nada:** Kekal mesra dan berperanan sebagai penasihat. Elakkan menjadi terlalu memaksa — anda penasihat, bukan jurujual.`
+        `**Nasihat Nada:** Kekal mesra dan berperanan sebagai penasihat. Elakkan menjadi terlalu memaksa.`
       );
       setLoading(false);
-    }, 2500);
+    }, 2200);
   };
 
   return (
-    <div className="bg-white rounded-2xl p-5 border border-neutral-100 shadow-sm">
-      <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="w-5 h-5 text-amber-600" />
-        <h2 className="text-lg font-bold text-neutral-900">Penganalisis Penutupan WhatsApp AI</h2>
+    <Card radius="lg" className="p-6">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-9 h-9 rounded-2xl bg-md-tertiary-container text-md-on-tertiary-container flex items-center justify-center">
+          <Sparkles className="w-4 h-4" />
+        </div>
+        <div>
+          <h2 className="text-base font-medium text-md-on-surface">
+            Penganalisis Penutupan WhatsApp AI
+          </h2>
+          <p className="text-xs text-md-on-surface-variant">
+            Tampal perbualan untuk skrip pengendalian bantahan
+          </p>
+        </div>
       </div>
-      <p className="text-sm text-neutral-500 mb-4">
-        Tampal perbualan WhatsApp yang sukar dan dapatkan skrip pengendalian bantahan berkuasa AI.
-      </p>
 
-      <textarea
+      <Textarea
         value={conversation}
         onChange={(e) => setConversation(e.target.value)}
-        placeholder="Tampal perbualan WhatsApp anda di sini...&#10;&#10;Contoh:&#10;Prospek: Saya rasa tak mampu la, gaji pun tak banyak...&#10;Prospek: Lagipun saya masih muda, tak perlu insurance lagi kot..."
-        className="w-full h-32 px-4 py-3 rounded-xl border border-neutral-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all text-sm resize-none"
+        placeholder={
+          'Tampal perbualan WhatsApp anda di sini...\n\nContoh:\nProspek: Saya rasa tak mampu la, gaji pun tak banyak...\nProspek: Lagipun saya masih muda, tak perlu insurance lagi kot...'
+        }
+        rows={5}
+        className="text-sm"
       />
 
-      <button
-        onClick={handleAnalyze}
-        disabled={!conversation.trim() || loading}
-        className="mt-3 inline-flex items-center gap-2 bg-black hover:bg-neutral-800 disabled:bg-neutral-300 disabled:cursor-not-allowed text-amber-400 font-semibold px-5 py-3 rounded-xl transition-all min-h-[44px]"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="w-4 h-4 animate-spin" /> Menganalisis...
-          </>
-        ) : (
-          <>
-            <Sparkles className="w-4 h-4" /> Analisis dengan AI
-          </>
-        )}
-      </button>
+      <div className="mt-3">
+        <Button
+          variant="filled"
+          iconLeft={loading ? Loader2 : Sparkles}
+          disabled={!conversation.trim() || loading}
+          onClick={handleAnalyze}
+          className={loading ? '[&>svg]:animate-spin' : ''}
+        >
+          {loading ? 'Menganalisis...' : 'Analisis dengan AI'}
+        </Button>
+      </div>
 
       {analysis && (
-        <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-          <h3 className="font-bold text-neutral-900 text-sm mb-2 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-600" /> Cadangan AI:
+        <div className="mt-5 p-5 bg-md-tertiary-container text-md-on-tertiary-container rounded-2xl">
+          <h3 className="font-medium text-sm mb-2 flex items-center gap-2">
+            <Sparkles className="w-4 h-4" /> Cadangan AI:
           </h3>
-          <div className="text-sm text-neutral-800 whitespace-pre-line leading-relaxed">
+          <div className="text-sm whitespace-pre-line leading-relaxed">
             {analysis}
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
-// ─── Lead Status Badge ───────────────────────────────────────────────────────
-function StatusBadge({ status }) {
-  const styles = {
-    New: 'bg-blue-50 text-blue-700 border-blue-200',
-    Contacted: 'bg-amber-50 text-amber-700 border-amber-200',
-    Presentation: 'bg-purple-50 text-purple-700 border-purple-200',
-    Closing: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    KIV: 'bg-neutral-100 text-neutral-600 border-neutral-200',
-  };
-
-  return (
-    <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${styles[status] || styles.New}`}>
-      {statusBM[status] || status}
-    </span>
-  );
-}
-
-// ─── Main CRM Tab ────────────────────────────────────────────────────────────
+/* ─── Main CRM ─────────────────────────────────────────────────────── */
 export default function CRMTab() {
   const { leads, updateLeadStatus } = useApp();
-  const [filterStatus, setFilterStatus] = useState('All');
+  const [filter, setFilter] = useState('All');
 
   const statuses = ['All', 'New', 'Contacted', 'Presentation', 'Closing', 'KIV'];
-
-  const filteredLeads =
-    filterStatus === 'All' ? leads : leads.filter((l) => l.status === filterStatus);
+  const filtered = filter === 'All' ? leads : leads.filter((l) => l.status === filter);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">Senarai Prospek</h1>
-        <p className="text-neutral-500 mt-1">Urus dan jejak saluran prospek anda.</p>
+        <h1 className="text-[1.75rem] md:text-[2.25rem] font-medium text-md-on-surface tracking-[-0.01em]">
+          Senarai Prospek
+        </h1>
+        <p className="text-md-on-surface-variant mt-1.5">
+          Urus dan jejak saluran prospek anda.
+        </p>
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex items-center gap-3 overflow-x-auto pb-2">
-        <Filter className="w-4 h-4 text-neutral-400 flex-shrink-0" />
-        {statuses.map((status) => (
-          <button
-            key={status}
-            onClick={() => setFilterStatus(status)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all min-h-[36px] ${
-              filterStatus === status
-                ? 'bg-black text-amber-400'
-                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-            }`}
-          >
-            {statusBM[status]}
-          </button>
-        ))}
-      </div>
+      <FilterPills value={filter} onChange={setFilter} options={statuses} />
 
-      {/* Desktop Table */}
-      <div className="hidden md:block bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
+      {/* Desktop table */}
+      <Card radius="lg" className="hidden md:block overflow-hidden p-0">
         <table className="w-full">
           <thead>
-            <tr className="bg-neutral-50 border-b border-neutral-100">
-              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider px-5 py-3">Nama</th>
-              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider px-5 py-3">Telefon</th>
-              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider px-5 py-3">Tarikh</th>
-              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider px-5 py-3">Status</th>
-              <th className="text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider px-5 py-3">Tindakan</th>
+            <tr className="bg-md-surface-container-high">
+              {['Nama', 'Telefon', 'Tarikh', 'Status', 'Tindakan'].map((h) => (
+                <th
+                  key={h}
+                  className="text-left text-xs font-medium text-md-on-surface-variant uppercase tracking-wider px-5 py-3"
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {filteredLeads.map((lead) => (
-              <tr key={lead.id} className="border-b border-neutral-50 hover:bg-neutral-50/50 transition-colors">
+            {filtered.map((lead) => (
+              <tr
+                key={lead.id}
+                className="border-t border-md-outline-variant hover:bg-md-primary/5 transition-colors"
+              >
                 <td className="px-5 py-4">
-                  <div>
-                    <p className="font-semibold text-neutral-900 text-sm">{lead.name}</p>
-                    <p className="text-xs text-neutral-400">{lead.email}</p>
-                  </div>
+                  <p className="font-medium text-md-on-surface text-sm">{lead.name}</p>
+                  <p className="text-xs text-md-on-surface-variant">{lead.email}</p>
                 </td>
                 <td className="px-5 py-4">
-                  <div className="flex items-center gap-1.5 text-sm text-neutral-600">
-                    <Phone className="w-3.5 h-3.5" />
+                  <div className="inline-flex items-center gap-1.5 text-sm text-md-on-surface">
+                    <Phone className="w-3.5 h-3.5 text-md-on-surface-variant" />
                     {lead.phone}
                   </div>
                 </td>
-                <td className="px-5 py-4 text-sm text-neutral-500">{lead.createdAt}</td>
-                <td className="px-5 py-4">
-                  <StatusBadge status={lead.status} />
+                <td className="px-5 py-4 text-sm text-md-on-surface-variant">
+                  {lead.createdAt}
                 </td>
+                <td className="px-5 py-4"><StatusChip status={lead.status} /></td>
                 <td className="px-5 py-4">
-                  <div className="relative">
-                    <select
-                      value={lead.status}
-                      onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
-                      className="appearance-none bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs font-medium text-neutral-700 pr-7 cursor-pointer focus:outline-none focus:border-amber-500 min-h-[36px]"
-                    >
-                      {statuses.filter((s) => s !== 'All').map((s) => (
-                        <option key={s} value={s}>{statusBM[s]}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400 pointer-events-none" />
-                  </div>
+                  <StatusSelect
+                    value={lead.status}
+                    onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
+                    statuses={statuses}
+                  />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
 
-        {filteredLeads.length === 0 && (
-          <div className="text-center py-8 text-neutral-400 text-sm">
+        {filtered.length === 0 && (
+          <div className="text-center py-12 text-md-on-surface-variant text-sm">
             Tiada prospek dijumpai untuk penapis ini.
           </div>
         )}
-      </div>
+      </Card>
 
-      {/* Mobile Card View */}
+      {/* Mobile cards */}
       <div className="md:hidden space-y-3">
-        {filteredLeads.map((lead) => (
-          <div key={lead.id} className="bg-white rounded-xl p-4 border border-neutral-100 shadow-sm">
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <p className="font-semibold text-neutral-900">{lead.name}</p>
-                <p className="text-xs text-neutral-400">{lead.email}</p>
+        {filtered.map((lead) => (
+          <Card key={lead.id} radius="lg" className="p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className="min-w-0">
+                <p className="font-medium text-md-on-surface truncate">{lead.name}</p>
+                <p className="text-xs text-md-on-surface-variant truncate">{lead.email}</p>
               </div>
-              <StatusBadge status={lead.status} />
+              <StatusChip status={lead.status} />
             </div>
-            <div className="flex items-center gap-1.5 text-sm text-neutral-600 mb-3">
-              <Phone className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1.5 text-sm text-md-on-surface mb-3">
+              <Phone className="w-3.5 h-3.5 text-md-on-surface-variant" />
               {lead.phone}
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-neutral-400">{lead.createdAt}</span>
-              <select
+              <span className="text-xs text-md-on-surface-variant">{lead.createdAt}</span>
+              <StatusSelect
                 value={lead.status}
                 onChange={(e) => updateLeadStatus(lead.id, e.target.value)}
-                className="appearance-none bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-xs font-medium text-neutral-700 cursor-pointer focus:outline-none focus:border-amber-500 min-h-[36px]"
-              >
-                {statuses.filter((s) => s !== 'All').map((s) => (
-                  <option key={s} value={s}>{statusBM[s]}</option>
-                ))}
-              </select>
+                statuses={statuses}
+              />
             </div>
-          </div>
+          </Card>
         ))}
 
-        {filteredLeads.length === 0 && (
-          <div className="text-center py-8 text-neutral-400 text-sm">
+        {filtered.length === 0 && (
+          <div className="text-center py-12 text-md-on-surface-variant text-sm">
             Tiada prospek dijumpai untuk penapis ini.
           </div>
         )}
       </div>
 
-      {/* Lead count */}
-      <div className="flex items-center gap-2 text-sm text-neutral-500">
+      <p className="inline-flex items-center gap-2 text-sm text-md-on-surface-variant">
         <Users className="w-4 h-4" />
-        <span>Memaparkan <strong>{filteredLeads.length}</strong> daripada <strong>{leads.length}</strong> prospek</span>
-      </div>
+        Memaparkan <strong className="text-md-on-surface">{filtered.length}</strong>{' '}
+        daripada <strong className="text-md-on-surface">{leads.length}</strong> prospek
+      </p>
 
-      {/* AI Analyzer */}
       <AIAnalyzer />
     </div>
   );

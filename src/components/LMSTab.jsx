@@ -3,303 +3,343 @@ import {
   BookOpen,
   Play,
   Clock,
-  CheckCircle,
+  CheckCircle2,
   Circle,
   ArrowLeft,
   FileText,
   HelpCircle,
   Award,
+  GraduationCap,
 } from 'lucide-react';
 import { mockQuizQuestions } from '../data/mockData';
 import { useApp } from '../context/AppContext';
+import { Button, Card } from './ui';
 
-// ─── BM translations for module status ───────────────────────────────────────
 const statusBM = {
   'In Progress': 'Sedang Dipelajari',
   'Not Started': 'Belum Mula',
   'Completed': 'Selesai',
 };
 
-// ─── Course List View ────────────────────────────────────────────────────────
-function CourseList({ onSelectModule }) {
+/* Status pill — colour-coded MD3 chip */
+function StatusChip({ status }) {
+  const styles = {
+    'In Progress': 'bg-md-primary-container text-md-on-primary-container',
+    'Not Started': 'bg-md-surface-container-high text-md-on-surface-variant',
+    'Completed': 'bg-md-success-container text-md-success',
+  }[status];
+  return (
+    <span className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${styles}`}>
+      {statusBM[status] || status}
+    </span>
+  );
+}
+
+/* ─── Course list ─────────────────────────────────────────────────── */
+function CourseList({ onSelect }) {
   const { trainingModules } = useApp();
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">Pengurusan Latihan</h1>
-        <p className="text-neutral-500 mt-1">Selesaikan modul latihan untuk meningkatkan tahap anda.</p>
+        <h1 className="text-[1.75rem] md:text-[2.25rem] font-medium text-md-on-surface tracking-[-0.01em]">
+          Pengurusan Latihan
+        </h1>
+        <p className="text-md-on-surface-variant mt-1.5">
+          Selesaikan modul latihan untuk meningkatkan tahap anda.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {trainingModules.map((mod) => (
-          <div
+          <Card
             key={mod.id}
-            onClick={() => onSelectModule(mod)}
-            className="bg-white rounded-2xl p-5 border border-neutral-100 shadow-sm hover:shadow-md hover:border-amber-200 transition-all cursor-pointer"
+            radius="lg"
+            interactive
+            className="p-6 group"
+            onClick={() => onSelect(mod)}
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-amber-600" />
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-11 h-11 rounded-2xl bg-md-primary-container text-md-on-primary-container flex items-center justify-center transition-transform duration-300 md-emphasized group-hover:rotate-[-4deg] group-hover:scale-110">
+                <BookOpen className="w-5 h-5" />
               </div>
-              <span
-                className={`text-xs font-medium px-2 py-1 rounded-full ${
-                  mod.status === 'In Progress'
-                    ? 'bg-amber-50 text-amber-600'
-                    : 'bg-neutral-100 text-neutral-500'
-                }`}
-              >
-                {statusBM[mod.status] || mod.status}
-              </span>
+              <StatusChip status={mod.status} />
             </div>
 
-            <h3 className="font-bold text-neutral-900 text-sm mb-1">{mod.title}</h3>
-            <p className="text-xs text-neutral-500 mb-3 line-clamp-2">{mod.description}</p>
+            <h3 className="font-medium text-md-on-surface text-base mb-1.5 leading-snug">
+              {mod.title}
+            </h3>
+            <p className="text-sm text-md-on-surface-variant line-clamp-2 mb-4 leading-relaxed">
+              {mod.description}
+            </p>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1 text-xs text-neutral-400">
+            <div className="flex items-center justify-between pt-3 border-t border-md-outline-variant">
+              <div className="flex items-center gap-1.5 text-xs text-md-on-surface-variant">
                 <Clock className="w-3.5 h-3.5" />
                 <span>{mod.duration}</span>
               </div>
               {mod.progress > 0 && (
                 <div className="flex items-center gap-2">
-                  <div className="w-16 bg-neutral-100 rounded-full h-1.5">
+                  <div className="w-16 bg-md-surface-container-high rounded-full h-1.5">
                     <div
-                      className="bg-amber-500 h-1.5 rounded-full"
+                      className="bg-md-primary h-1.5 rounded-full"
                       style={{ width: `${mod.progress}%` }}
                     />
                   </div>
-                  <span className="text-xs text-amber-600 font-medium">{mod.progress}%</span>
+                  <span className="text-xs text-md-primary font-medium">
+                    {mod.progress}%
+                  </span>
                 </div>
               )}
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>
   );
 }
 
-// ─── Video Player View ───────────────────────────────────────────────────────
-function VideoPlayer({ module, onBack }) {
-  const [activePlayerTab, setActivePlayerTab] = useState('video');
-  const [showQuiz, setShowQuiz] = useState(false);
-  const [quizAnswers, setQuizAnswers] = useState({});
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
+/* ─── Quiz ─────────────────────────────────────────────────────────── */
+function Quiz({ onBack }) {
+  const [answers, setAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
 
-  const handleQuizSubmit = () => {
-    setQuizSubmitted(true);
-  };
+  const score = mockQuizQuestions.reduce(
+    (acc, q, i) => (answers[i] === q.correct ? acc + 1 : acc),
+    0
+  );
+  const allAnswered = Object.keys(answers).length === mockQuizQuestions.length;
 
-  const getScore = () => {
-    let correct = 0;
-    mockQuizQuestions.forEach((q, i) => {
-      if (quizAnswers[i] === q.correct) correct++;
-    });
-    return correct;
-  };
-
-  if (showQuiz) {
+  if (submitted) {
     return (
       <div className="space-y-6">
-        <button
-          onClick={() => setShowQuiz(false)}
-          className="inline-flex items-center gap-2 text-neutral-600 hover:text-neutral-900 font-medium text-sm min-h-[44px]"
-        >
-          <ArrowLeft className="w-4 h-4" /> Kembali ke Modul
-        </button>
+        <Button variant="text" iconLeft={ArrowLeft} onClick={onBack}>
+          Kembali ke Modul
+        </Button>
 
-        <div className="bg-white rounded-2xl p-6 border border-neutral-100 shadow-sm">
-          <div className="flex items-center gap-2 mb-6">
-            <HelpCircle className="w-5 h-5 text-amber-600" />
-            <h2 className="text-lg font-bold text-neutral-900">Kuiz Modul</h2>
+        <Card radius="xl" className="p-10 text-center">
+          <div className="inline-flex w-20 h-20 rounded-full bg-md-primary-container items-center justify-center mb-5">
+            <Award className="w-10 h-10 text-md-on-primary-container" />
           </div>
-
-          {quizSubmitted ? (
-            <div className="text-center py-8">
-              <Award className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-neutral-900 mb-2">
-                Markah: {getScore()}/{mockQuizQuestions.length}
-              </h3>
-              <p className="text-neutral-500">
-                {getScore() === mockQuizQuestions.length
-                  ? 'Markah penuh! Anda telah menguasai modul ini.'
-                  : 'Ulang kaji bahan dan cuba lagi untuk markah lebih baik.'}
-              </p>
-              <button
-                onClick={() => {
-                  setQuizSubmitted(false);
-                  setQuizAnswers({});
-                }}
-                className="mt-4 bg-amber-500 hover:bg-amber-600 text-black font-semibold px-6 py-3 rounded-xl transition-all min-h-[44px]"
-              >
-                Cuba Semula
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {mockQuizQuestions.map((q, qIndex) => (
-                <div key={qIndex} className="p-4 bg-neutral-50 rounded-xl">
-                  <p className="font-semibold text-neutral-900 text-sm mb-3">
-                    {qIndex + 1}. {q.question}
-                  </p>
-                  <div className="space-y-2">
-                    {q.options.map((option, oIndex) => (
-                      <label
-                        key={oIndex}
-                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all min-h-[44px] ${
-                          quizAnswers[qIndex] === oIndex
-                            ? 'bg-amber-50 border border-amber-200'
-                            : 'bg-white border border-neutral-100 hover:border-neutral-200'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name={`q-${qIndex}`}
-                          checked={quizAnswers[qIndex] === oIndex}
-                          onChange={() =>
-                            setQuizAnswers((prev) => ({ ...prev, [qIndex]: oIndex }))
-                          }
-                          className="w-4 h-4 text-amber-600 focus:ring-amber-500"
-                        />
-                        <span className="text-sm text-neutral-700">{option}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-              <button
-                onClick={handleQuizSubmit}
-                disabled={Object.keys(quizAnswers).length < mockQuizQuestions.length}
-                className="w-full bg-amber-500 hover:bg-amber-600 disabled:bg-neutral-300 disabled:cursor-not-allowed text-black font-semibold py-3 rounded-xl transition-all min-h-[44px]"
-              >
-                Hantar Jawapan
-              </button>
-            </div>
-          )}
-        </div>
+          <h3 className="text-3xl font-medium text-md-on-surface mb-2 tracking-[-0.01em]">
+            Markah: {score}/{mockQuizQuestions.length}
+          </h3>
+          <p className="text-md-on-surface-variant mb-6">
+            {score === mockQuizQuestions.length
+              ? 'Markah penuh! Anda telah menguasai modul ini.'
+              : 'Ulang kaji bahan dan cuba lagi untuk markah lebih baik.'}
+          </p>
+          <Button
+            variant="filled"
+            onClick={() => {
+              setSubmitted(false);
+              setAnswers({});
+            }}
+          >
+            Cuba Semula
+          </Button>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <button
-        onClick={onBack}
-        className="inline-flex items-center gap-2 text-neutral-600 hover:text-neutral-900 font-medium text-sm min-h-[44px]"
-      >
-        <ArrowLeft className="w-4 h-4" /> Kembali ke Senarai Kursus
-      </button>
+      <Button variant="text" iconLeft={ArrowLeft} onClick={onBack}>
+        Kembali ke Modul
+      </Button>
 
-      {/* Mock Video Player */}
-      <div className="bg-black rounded-2xl aspect-video flex items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 to-black" />
-        <div className="relative text-center">
-          <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-3 border-2 border-amber-500/50">
-            <Play className="w-8 h-8 text-amber-400 ml-1" />
-          </div>
-          <p className="text-white font-semibold">{module.title}</p>
-          <p className="text-neutral-400 text-sm mt-1">{module.duration} • Sesi Video</p>
+      <Card radius="xl" className="p-6 md:p-8">
+        <div className="flex items-center gap-2 mb-6">
+          <HelpCircle className="w-5 h-5 text-md-primary" />
+          <h2 className="text-lg font-medium text-md-on-surface">Kuiz Modul</h2>
         </div>
-        {/* Progress bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-neutral-700">
+
+        <div className="space-y-5">
+          {mockQuizQuestions.map((q, qi) => (
+            <fieldset key={qi} className="p-5 bg-md-surface-container-low rounded-2xl">
+              <legend className="font-medium text-md-on-surface text-sm mb-3 px-2">
+                {qi + 1}. {q.question}
+              </legend>
+              <div className="space-y-2">
+                {q.options.map((opt, oi) => {
+                  const checked = answers[qi] === oi;
+                  return (
+                    <label
+                      key={oi}
+                      className={[
+                        'flex items-center gap-3 p-3 rounded-2xl cursor-pointer min-h-[48px]',
+                        'transition-all duration-200 md-emphasized',
+                        checked
+                          ? 'bg-md-primary-container ring-2 ring-md-primary'
+                          : 'bg-md-surface-container-lowest hover:bg-md-primary/5',
+                      ].join(' ')}
+                    >
+                      <input
+                        type="radio"
+                        name={`q-${qi}`}
+                        checked={checked}
+                        onChange={() => setAnswers((p) => ({ ...p, [qi]: oi }))}
+                        className="w-4 h-4 accent-md-primary"
+                      />
+                      <span className="text-sm text-md-on-surface">{opt}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ))}
+
+          <Button
+            variant="filled"
+            size="lg"
+            disabled={!allAnswered}
+            onClick={() => setSubmitted(true)}
+            className="w-full"
+          >
+            Hantar Jawapan
+          </Button>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ─── Module detail / video player ────────────────────────────────── */
+function ModuleDetail({ module, onBack }) {
+  const [tab, setTab] = useState('video');
+  const [showQuiz, setShowQuiz] = useState(false);
+
+  if (showQuiz) return <Quiz onBack={() => setShowQuiz(false)} />;
+
+  return (
+    <div className="space-y-6">
+      <Button variant="text" iconLeft={ArrowLeft} onClick={onBack}>
+        Kembali ke Senarai Kursus
+      </Button>
+
+      {/* Mock video */}
+      <Card radius="xl" tone="inverse" className="aspect-video relative overflow-hidden p-0">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(ellipse at center, rgba(255,210,122,0.18) 0%, transparent 65%)',
+          }}
+        />
+        <div className="relative h-full flex flex-col items-center justify-center text-center p-6">
+          <button
+            type="button"
+            className="w-20 h-20 rounded-full bg-md-inverse-primary text-md-inverse-surface flex items-center justify-center mb-4 shadow-md-3 transition-transform duration-300 md-emphasized hover:scale-110 active:scale-95"
+            aria-label={`Mainkan ${module.title}`}
+          >
+            <Play className="w-9 h-9 ml-1" fill="currentColor" />
+          </button>
+          <p className="font-medium text-md-inverse-on-surface">{module.title}</p>
+          <p className="text-sm text-md-inverse-on-surface/65 mt-1">
+            {module.duration} · Sesi Video
+          </p>
+        </div>
+        {/* progress */}
+        <div className="absolute bottom-0 inset-x-0 h-1 bg-white/10">
           <div
-            className="h-full bg-amber-500"
+            className="h-full bg-md-inverse-primary"
             style={{ width: `${module.progress}%` }}
           />
         </div>
-      </div>
+      </Card>
 
-      {/* Tabs: Video Notes / Take Quiz */}
-      <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
-        <div className="flex border-b border-neutral-100">
-          <button
-            onClick={() => setActivePlayerTab('video')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-all min-h-[44px] ${
-              activePlayerTab === 'video'
-                ? 'text-amber-600 border-b-2 border-amber-500 bg-amber-50/50'
-                : 'text-neutral-500 hover:text-neutral-700'
-            }`}
-          >
-            <FileText className="w-4 h-4" /> Nota Video
-          </button>
-          <button
-            onClick={() => setActivePlayerTab('quiz')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-all min-h-[44px] ${
-              activePlayerTab === 'quiz'
-                ? 'text-amber-600 border-b-2 border-amber-500 bg-amber-50/50'
-                : 'text-neutral-500 hover:text-neutral-700'
-            }`}
-          >
-            <HelpCircle className="w-4 h-4" /> Ambil Kuiz
-          </button>
+      {/* Notes / quiz tabs */}
+      <Card radius="lg" className="overflow-hidden p-0">
+        <div role="tablist" className="flex border-b border-md-outline-variant">
+          {[
+            { id: 'video', label: 'Nota Video', Icon: FileText },
+            { id: 'quiz', label: 'Ambil Kuiz', Icon: HelpCircle },
+          ].map(({ id, label, Icon }) => {
+            const active = tab === id;
+            return (
+              <button
+                key={id}
+                role="tab"
+                aria-selected={active}
+                onClick={() => setTab(id)}
+                className={[
+                  'flex-1 inline-flex items-center justify-center gap-2 h-12 text-sm font-medium',
+                  'transition-colors duration-200 md-emphasized',
+                  active
+                    ? 'text-md-primary border-b-2 border-md-primary bg-md-primary/5'
+                    : 'text-md-on-surface-variant hover:text-md-on-surface',
+                ].join(' ')}
+              >
+                <Icon className="w-4 h-4" /> {label}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="p-5">
-          {activePlayerTab === 'video' ? (
+        <div className="p-6">
+          {tab === 'video' ? (
             <div>
-              <h3 className="font-bold text-neutral-900 mb-2">Nota</h3>
+              <h3 className="font-medium text-md-on-surface mb-2">Nota</h3>
               {module.videoNotes ? (
-                <p className="text-sm text-neutral-600 leading-relaxed">{module.videoNotes}</p>
+                <p className="text-sm text-md-on-surface-variant leading-relaxed">
+                  {module.videoNotes}
+                </p>
               ) : (
-                <p className="text-sm text-neutral-400 italic">
+                <p className="text-sm text-md-on-surface-variant/70 italic">
                   Tiada nota lagi. Selesaikan video untuk membuka nota.
                 </p>
               )}
             </div>
           ) : (
             <div className="text-center py-4">
-              <HelpCircle className="w-12 h-12 text-amber-200 mx-auto mb-3" />
-              <h3 className="font-bold text-neutral-900 mb-1">Sedia menguji pengetahuan anda?</h3>
-              <p className="text-sm text-neutral-500 mb-4">
+              <div className="inline-flex w-14 h-14 rounded-2xl bg-md-primary-container items-center justify-center mb-3">
+                <GraduationCap className="w-6 h-6 text-md-on-primary-container" />
+              </div>
+              <h3 className="font-medium text-md-on-surface mb-1">
+                Sedia menguji pengetahuan anda?
+              </h3>
+              <p className="text-sm text-md-on-surface-variant mb-5">
                 Jawab soalan berdasarkan kandungan modul ini.
               </p>
-              <button
-                onClick={() => setShowQuiz(true)}
-                className="bg-amber-500 hover:bg-amber-600 text-black font-semibold px-6 py-3 rounded-xl transition-all min-h-[44px]"
-              >
+              <Button variant="filled" onClick={() => setShowQuiz(true)}>
                 Mulakan Kuiz
-              </button>
+              </Button>
             </div>
           )}
         </div>
-      </div>
+      </Card>
 
-      {/* Module Info */}
-      <div className="bg-white rounded-2xl p-5 border border-neutral-100 shadow-sm">
-        <h3 className="font-bold text-neutral-900 mb-2">Tentang Modul Ini</h3>
-        <p className="text-sm text-neutral-600">{module.description}</p>
-        <div className="flex items-center gap-4 mt-3">
-          <div className="flex items-center gap-1 text-xs text-neutral-400">
+      {/* About module */}
+      <Card radius="lg" className="p-6">
+        <h3 className="font-medium text-md-on-surface mb-2">Tentang Modul Ini</h3>
+        <p className="text-sm text-md-on-surface-variant leading-relaxed">
+          {module.description}
+        </p>
+        <div className="flex items-center gap-4 mt-3 text-xs text-md-on-surface-variant">
+          <span className="inline-flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />
-            <span>{module.duration}</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs">
+            {module.duration}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
             {module.status === 'In Progress' ? (
-              <>
-                <Circle className="w-3.5 h-3.5 text-amber-500" />
-                <span className="text-amber-600">{statusBM[module.status]}</span>
-              </>
+              <Circle className="w-3.5 h-3.5 text-md-primary" />
             ) : (
-              <>
-                <CheckCircle className="w-3.5 h-3.5 text-neutral-400" />
-                <span className="text-neutral-500">{statusBM[module.status] || module.status}</span>
-              </>
+              <CheckCircle2 className="w-3.5 h-3.5" />
             )}
-          </div>
+            <StatusChip status={module.status} />
+          </span>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
 
-// ─── Main LMS Tab ────────────────────────────────────────────────────────────
 export default function LMSTab() {
-  const [selectedModule, setSelectedModule] = useState(null);
-
-  return selectedModule ? (
-    <VideoPlayer module={selectedModule} onBack={() => setSelectedModule(null)} />
+  const [selected, setSelected] = useState(null);
+  return selected ? (
+    <ModuleDetail module={selected} onBack={() => setSelected(null)} />
   ) : (
-    <CourseList onSelectModule={setSelectedModule} />
+    <CourseList onSelect={setSelected} />
   );
 }

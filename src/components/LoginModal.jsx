@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { Mail, Lock, X, User, ShieldCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import Logo from './Logo';
+import { Button, Card, Field, Input } from './ui';
 
 export default function LoginModal() {
   const { loginModalOpen, setLoginModalOpen, login } = useApp();
-  const [role, setRole] = useState('agent'); // 'agent' | 'admin'
+  const [role, setRole] = useState('agent');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -32,94 +33,121 @@ export default function LoginModal() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+    <div
+      className="fixed inset-0 bg-md-inverse-surface/70 backdrop-blur-md z-50 flex items-center justify-center p-4"
+      onClick={handleClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="login-title"
+    >
+      <Card
+        radius="2xl"
+        tone="lowest"
+        className="max-w-md w-full p-0 overflow-hidden shadow-md-3"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-neutral-100">
-          <div className="flex items-center gap-2">
-            <Logo className="w-7 h-7" />
-            <h3 className="font-bold text-neutral-900">Log Masuk Annur Agency</h3>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-md-outline-variant">
+          <div className="flex items-center gap-2.5">
+            <Logo className="w-8 h-8" />
+            <h3 id="login-title" className="font-medium text-md-on-surface">
+              Log Masuk Annur Agency
+            </h3>
           </div>
           <button
             onClick={handleClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-neutral-100 transition-colors"
+            className="w-10 h-10 inline-flex items-center justify-center rounded-full text-md-on-surface-variant hover:bg-md-primary/10 active:scale-95 transition-all duration-200 md-emphasized focus-visible:ring-2 focus-visible:ring-md-primary focus-visible:ring-offset-2"
             aria-label="Tutup"
           >
-            <X className="w-5 h-5 text-neutral-500" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-6">
-          {/* Role Toggle */}
-          <div className="grid grid-cols-2 gap-2 mb-5 p-1 bg-neutral-100 rounded-xl">
-            <button
-              type="button"
-              onClick={() => setRole('agent')}
-              className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all min-h-[44px] ${
-                role === 'agent'
-                  ? 'bg-black text-amber-400 shadow'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <User className="w-4 h-4" /> Ejen
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole('admin')}
-              className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all min-h-[44px] ${
-                role === 'admin'
-                  ? 'bg-black text-amber-400 shadow'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4" /> Admin
-            </button>
+          {/* Role toggle — segmented control */}
+          <div
+            role="tablist"
+            aria-label="Pilih jenis akaun"
+            className="grid grid-cols-2 gap-1 mb-6 p-1 bg-md-surface-container-low rounded-full"
+          >
+            {[
+              { id: 'agent', label: 'Ejen', icon: User },
+              { id: 'admin', label: 'Admin', icon: ShieldCheck },
+            ].map(({ id, label, icon: Icon }) => {
+              const active = role === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setRole(id)}
+                  className={[
+                    'inline-flex items-center justify-center gap-2 h-10 rounded-full text-sm font-medium',
+                    'transition-all duration-300 md-emphasized active:scale-95',
+                    active
+                      ? 'bg-md-inverse-surface text-md-inverse-primary shadow-md-1'
+                      : 'text-md-on-surface-variant hover:text-md-on-surface',
+                  ].join(' ')}
+                >
+                  <Icon className="w-4 h-4" /> {label}
+                </button>
+              );
+            })}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">{error}</div>
+              <div
+                role="alert"
+                className="bg-md-error-container text-md-error text-sm px-4 py-3 rounded-2xl"
+              >
+                {error}
+              </div>
             )}
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">E-mel</label>
+
+            <Field label="E-mel" required>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                <input
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-md-on-surface-variant pointer-events-none" />
+                <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
-                  placeholder={role === 'admin' ? 'admin@annur-agency.com' : 'ejen@annur-agency.com'}
+                  placeholder={
+                    role === 'admin'
+                      ? 'admin@annur-agency.com'
+                      : 'ejen@annur-agency.com'
+                  }
+                  className="pl-12"
                   required
                 />
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">Kata Laluan</label>
+            </Field>
+
+            <Field label="Kata Laluan" required>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                <input
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-md-on-surface-variant pointer-events-none" />
+                <Input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-neutral-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
                   placeholder="Masukkan kata laluan"
+                  className="pl-12"
                   required
                 />
               </div>
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-3 rounded-xl transition-all min-h-[44px]"
-            >
+            </Field>
+
+            <Button type="submit" variant="filled" size="lg" className="w-full mt-2">
               Log Masuk sebagai {role === 'admin' ? 'Admin' : 'Ejen'}
-            </button>
-            <p className="text-xs text-center text-neutral-400">
+            </Button>
+
+            <p className="text-xs text-center text-md-on-surface-variant pt-2">
               Demo MVP: Masukkan sebarang e-mel & kata laluan
             </p>
           </form>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
