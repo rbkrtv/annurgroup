@@ -1,5 +1,8 @@
 // Mock data for the entire application — minimal seed (1 entry per category)
 
+// Vite base URL prefix for public assets (handles GitHub Pages subpath)
+const BASE = import.meta.env.BASE_URL;
+
 // ─── Agency Team (2 GM + 4 AM) ─────────────────────────────────────────────
 export const mockTeamMembers = [
   // Group Managers
@@ -9,7 +12,7 @@ export const mockTeamMembers = [
     role: 'Group Manager',
     tier: 'group',
     desc: 'Pemimpin berpengalaman dalam industri Takaful, mengetuai kluster agensi terbesar.',
-    photo: '/team/sahar.jpg',
+    photo: `${BASE}team/sahar.jpg`,
   },
   {
     id: 'gm-2',
@@ -17,7 +20,7 @@ export const mockTeamMembers = [
     role: 'Group Manager',
     tier: 'group',
     desc: 'Pakar dalam Takaful keluarga dan perancangan kekayaan jangka panjang.',
-    photo: '/team/wina.jpg',
+    photo: `${BASE}team/wina.jpg`,
   },
   // Agency Managers
   {
@@ -26,7 +29,7 @@ export const mockTeamMembers = [
     role: 'Agency Manager',
     tier: 'agency',
     desc: 'Pakar perlindungan keluarga dan perancangan persaraan.',
-    photo: '/team/pian.jpg',
+    photo: `${BASE}team/pian.jpg`,
   },
   {
     id: 'am-2',
@@ -34,7 +37,7 @@ export const mockTeamMembers = [
     role: 'Agency Manager',
     tier: 'agency',
     desc: 'Pakar dalam Takaful korporat dan pelan perlindungan PKS.',
-    photo: '/team/fairuz.jpg',
+    photo: `${BASE}team/fairuz.jpg`,
   },
   {
     id: 'am-3',
@@ -42,7 +45,7 @@ export const mockTeamMembers = [
     role: 'Agency Manager',
     tier: 'agency',
     desc: 'Pakar kad perubatan dan penyakit kritikal.',
-    photo: '/team/najib.jpg',
+    photo: `${BASE}team/najib.jpg`,
   },
   {
     id: 'am-4',
@@ -50,7 +53,7 @@ export const mockTeamMembers = [
     role: 'Agency Manager',
     tier: 'agency',
     desc: 'Pakar Takaful keluarga dan perancangan pendidikan anak.',
-    photo: '/team/wahida.jpg',
+    photo: `${BASE}team/wahida.jpg`,
   },
 ];
 
@@ -99,7 +102,7 @@ export const mockGallery = [
     id: 'g-1',
     title: 'Pencapaian Agensi',
     desc: 'Kejayaan dan anugerah Annur Agency.',
-    photo: '/gallery/achievement.jpg',
+    photo: `${BASE}gallery/achievement.jpg`,
   },
 ];
 
